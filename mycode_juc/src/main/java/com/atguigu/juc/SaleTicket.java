@@ -1,5 +1,6 @@
 package com.atguigu.juc;
 
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -31,7 +32,8 @@ class Tickets {
         //解锁
 
         try {
-            if (number>0){
+            //if (number>0){   //使用while 判断
+            while (number>0){
                 System.out.println(Thread.currentThread().getName()+"卖出："+number-- + "剩下"+ number);
             }
         } catch (Exception e) {
@@ -46,12 +48,31 @@ class Tickets {
 //3个售票员  卖出  30张票
 public class SaleTicket {
     public static void main(String[] args) {
-        Tickets tickets = new Tickets();
+        final Tickets tickets = new Tickets();
 
-        new Thread(new Runnable() {
+        /*new Thread(new Runnable() {
            public void run(){
 
            }
-        },"AA").start();
+        },"AA").start();*/
+        //从线程池中获取线程
+        ExecutorService threadPool = new ThreadPoolExecutor(
+                2,
+                8,
+                2L,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<Runnable>(3),
+                Executors.defaultThreadFactory(),
+                new ThreadPoolExecutor.AbortPolicy()
+        );
+
+        for (int i = 0; i < 5; i++) {
+            threadPool.execute(()->{
+                tickets.sale();
+            });
+        }
+
+
+
     }
 }
